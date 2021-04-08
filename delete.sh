@@ -1,6 +1,6 @@
 #!/bin/bash
 BRANCH=master
-FILE=rules.json
+FILE=rules.yaml
 EXPIRE=360
 
 function usage {
@@ -72,19 +72,14 @@ do
   #check expiration
   commitdate=$(git show --format="%ci" -s ${commit})
   yamlchange=$(git show --format="" ${commit} -- ${FILE} | grep "^\+" | grep -v "+++" | cut -c 2-)
-  
-  echo "$yamlchange "
-  echo "{ $yamlchange }" | tr '\n' ' ' | jq
   #todo: get expired date
 
   commitdateepoch=$(date -d "$commitdate" +%s)
   let timediff=${now}-${commitdateepoch}
 
-
-
   if [ ${timediff} -gt ${EXPIRE} ]; then
-    echo "expired commit"
-    git revert ${commit} 
+    echo "expired commit ${commit}"
+    git revert ${commit} -m "This reverts commit ${commit}."
     continue
   fi
 
