@@ -2,5 +2,9 @@
 	"rulename":{
     "rule":"header contains x",
     "expire": "do  6 mei 2021 16:34:07 CEST"
+  },
+  "rulename1":{
+    "rule":"header contains x",
+    "expire": "do  6 mei 2021 16:34:07 CEST"   
   }
 }
