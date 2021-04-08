@@ -48,7 +48,7 @@ do
   echo "checking ${commit}"
 
   # ignore commits containing reverted message
-  commitrevert=$(git show -s ${commit} | egrep "^    This reverts commit [0-9a-f]{40}\." | sed -E 's|.*([0-9a-f]{40}).*|\1|')
+  commitrevert=$(git show --format="%B" -s ${commit} | egrep "^This reverts commit [0-9a-f]{40}\." | sed -E 's|.*([0-9a-f]{40}).*|\1|')
   if [ "${commitrevert}" != "" ]; then
     echo "revert commit"
     reverted_commits+=(${commitrevert})
@@ -62,15 +62,15 @@ do
   fi
 
   # ignore commits that are persistent
-  commitmessage=$(git show --format="%B" -s ${commit} | egrep "^Persistent: always$" )
+  commitpersistent=$(git show --format="%B" -s ${commit} | egrep "^Persistent: +always$" )
   # ignore commits that have been reverted
-  if [ "${commitmessage}" != "" ]; then
+  if [ "${commitpersistent}" != "" ]; then
     echo "persistent commit"
     continue
   fi
 
   #check expiration
-  commitdate=$(git show --date=iso8601 --format=fuller -s ${commit} | egrep "^CommitDate: " | sed -E 's|^CommitDate: +(.+)|\1|' )
+  commitdate=$(git show --format="%ci" -s ${commit})
   jsonchange=$(git show --format="" ${commit} -- ${FILE} | grep "^\+" | grep -v "+++" | cut -c 2-)
   
   echo "$jsonchange" | jq
