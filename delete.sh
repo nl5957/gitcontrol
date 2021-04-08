@@ -62,7 +62,7 @@ do
   fi
 
   # ignore commits that are persistent
-  commitmessage=$(git show --format="%B" -s ${commit} | egrep "^Presistent: always$" )
+  commitmessage=$(git show --format="%B" -s ${commit} | egrep "^Persistent: always$" )
   # ignore commits that have been reverted
   if [ "${commitmessage}" != "" ]; then
     echo "persistent commit"
