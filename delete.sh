@@ -71,9 +71,11 @@ do
 
   #check expiration
   commitdate=$(git show --format="%ci" -s ${commit})
-  jsonchange=$(git show --format="" ${commit} -- ${FILE} | grep "^\+" | grep -v "+++" | cut -c 2-)
+  yamlchange=$(git show --format="" ${commit} -- ${FILE} | grep "^\+" | grep -v "+++" | cut -c 2-)
   
-  echo "$jsonchange" | jq
+  echo "$yamlchange "
+  echo "{ $yamlchange }" | tr '\n' ' ' | jq
+  #todo: get expired date
 
   commitdateepoch=$(date -d "$commitdate" +%s)
   let timediff=${now}-${commitdateepoch}
@@ -82,7 +84,7 @@ do
 
   if [ ${timediff} -gt ${EXPIRE} ]; then
     echo "expired commit"
-    git revert -F ${commit} 
+    git revert ${commit} 
     continue
   fi
 

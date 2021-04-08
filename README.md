@@ -3,5 +3,5 @@ The purpos of this project is to use git as a tracking system for leads & select
 
 ## how to use
  * use a branching strategy that forces a review before merging to main
- * define a clear json structure
+ * define a clear yaml structure
  * add a cron job & ci/cd job runs delete.sh
