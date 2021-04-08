@@ -1,5 +1,5 @@
 #!/bin/bash
-BRANCH=main
+BRANCH=master
 FILE=rules.json
 EXPIRE=360
 
@@ -45,23 +45,35 @@ now=$(date -d "now" +%s)
 # loop through all commits of test.json on master branch
 for commit in $(git rev-list --all ${BRANCH} -- ${FILE})
 do
+  echo "checking ${commit}"
 
   # ignore commits containing reverted message
   commitrevert=$(git show -s ${commit} | egrep "^    This reverts commit [0-9a-f]{40}\." | sed -E 's|.*([0-9a-f]{40}).*|\1|')
   if [ "${commitrevert}" != "" ]; then
+    echo "revert commit"
     reverted_commits+=(${commitrevert})
     continue
   fi
 
   # ignore commits that have been reverted
   if [[ "${reverted_commits[*]}" =~ (^|[^[:alpha:]])$commit([^[:alpha:]]|$) ]]; then
+    echo "reverted commit"
+    continue
+  fi
+
+  # ignore commits that are persistent
+  commitmessage=$(git show --format="%B" -s ${commit} | egrep "^Presistent: always$" )
+  # ignore commits that have been reverted
+  if [ "${commitmessage}" != "" ]; then
+    echo "persistent commit"
     continue
   fi
 
   #check expiration
-  commitdate=$(git show --date=iso8601 -s ${commit} | egrep "^Date: " | sed -E 's|^Date: +(.+)|\1|' )
-
-
+  commitdate=$(git show --date=iso8601 --format=fuller -s ${commit} | egrep "^CommitDate: " | sed -E 's|^CommitDate: +(.+)|\1|' )
+  jsonchange=$(git show --format="" ${commit} -- ${FILE} | grep "^\+" | grep -v "+++" | cut -c 2-)
+  
+  echo "$jsonchange" | jq
 
   commitdateepoch=$(date -d "$commitdate" +%s)
   let timediff=${now}-${commitdateepoch}
@@ -69,8 +81,9 @@ do
 
 
   if [ ${timediff} -gt ${EXPIRE} ]; then
-    echo "expired $commit"
-    #git revert ${commit}
+    echo "expired commit"
+    git revert -F ${commit} 
     continue
   fi
+
 done
